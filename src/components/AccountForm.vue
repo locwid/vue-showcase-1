@@ -1,14 +1,10 @@
 <script lang="ts" setup>
 import type { SelectChangeEvent } from 'primevue/select'
 import type { Account, AccountType, RawAccount } from '@/lib/account/types'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
-import Password from 'primevue/password'
-import Select from 'primevue/select'
-import Textarea from 'primevue/textarea'
 import { computed, ref } from 'vue'
 import { accountTypeDefaultsMap, accountTypeOptions } from '@/lib/account/constants'
 import { validateAccount } from '@/lib/account/validation'
+import { simplifyZodErrors } from '@/utils/simplifyZodErrors'
 
 const emit = defineEmits<{
   (e: 'delete', id: string): void
@@ -19,6 +15,7 @@ const account = defineModel<RawAccount>({ required: true })
 const errors = ref<Record<string, boolean>>({})
 
 const hasError = computed(() => (name: string) => errors.value[name] || false)
+const isWithPassword = computed(() => account.value.type === 'LOCAL')
 
 function onTypeChange(e: SelectChangeEvent) {
   account.value.password = accountTypeDefaultsMap[e.value as AccountType]
@@ -32,10 +29,7 @@ function validate() {
     emit('save', result.data)
   }
   else {
-    errors.value = result.error.errors.reduce((acc, error) => {
-      acc[error.path[0]] = true
-      return acc
-    }, {} as Record<string, boolean>)
+    errors.value = simplifyZodErrors(result)
   }
 }
 </script>
@@ -67,16 +61,17 @@ function validate() {
       name="login"
       :invalid="hasError('login')"
       :style="{
-        gridColumn: account.type === 'LOCAL' ? '3' : '3 / span 2',
+        gridColumn: isWithPassword ? '3' : '3 / span 2',
       }"
       @blur="validate"
     />
     <Password
-      v-if="account.type === 'LOCAL'"
+      v-if="isWithPassword"
       v-model="account.password"
       name="password"
       :invalid="hasError('password')"
       :feedback="false"
+      :input-style="{ width: '100%' }"
       @blur="validate"
     />
     <Button

@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import type { Account, RawAccount } from '@/lib/account/types'
-import Button from 'primevue/button'
-import Message from 'primevue/message'
 import { onMounted, ref } from 'vue'
 import { stringifyTags } from '@/lib/account/tags'
 import { useAccountsStore } from '@/stores/useAccountsStore'

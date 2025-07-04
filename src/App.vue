@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AccountsRegistry from './components/AccountsRegistry.vue'
+import AccountsRegistry from '@/components/AccountsRegistry.vue'
 </script>
 
 <template>

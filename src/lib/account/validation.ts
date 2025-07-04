@@ -1,4 +1,4 @@
-import z from 'zod'
+import { z } from 'zod'
 import { parseTags } from './tags'
 
 const baseSchema = z.object({

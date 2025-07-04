@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import type { SelectChangeEvent } from 'primevue/select'
-import type { Account, AccountType, RawAccount } from '@/types/Accounts'
+import type { Account, AccountType, RawAccount } from '@/lib/account/types'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Select from 'primevue/select'
 import Textarea from 'primevue/textarea'
 import { computed, ref } from 'vue'
+import { accountTypeDefaultsMap, accountTypeOptions } from '@/lib/account/constants'
 import { validateAccount } from '@/lib/account/validation'
 
 const emit = defineEmits<{
@@ -14,29 +15,13 @@ const emit = defineEmits<{
   (e: 'save', data: Account): void
 }>()
 
-const options: { label: string, value: AccountType }[] = [
-  {
-    label: 'Локальная',
-    value: 'LOCAL',
-  },
-  {
-    label: 'LDAP',
-    value: 'LDAP',
-  },
-]
-
-const typeDefaultValueMap = {
-  LOCAL: '',
-  LDAP: null,
-} satisfies Record<AccountType, unknown>
-
 const account = defineModel<RawAccount>({ required: true })
 const errors = ref<Record<string, boolean>>({})
 
 const hasError = computed(() => (name: string) => errors.value[name] || false)
 
 function onTypeChange(e: SelectChangeEvent) {
-  account.value.password = typeDefaultValueMap[e.value as AccountType]
+  account.value.password = accountTypeDefaultsMap[e.value as AccountType]
   validate()
 }
 
@@ -71,7 +56,7 @@ function validate() {
     <Select
       v-model="account.type"
       name="type"
-      :options="options"
+      :options="accountTypeOptions"
       option-label="label"
       option-value="value"
       :invalid="hasError('type')"

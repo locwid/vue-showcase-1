@@ -1,4 +1,4 @@
-import type { Tag } from '@/types/Accounts'
+import type { Tag } from '@/lib/account/types'
 
 export function parseTags(tags: string): Tag[] {
   return tags.split(';').map(item => item.trim()).filter(Boolean).map(item => ({ text: item.trim() }))

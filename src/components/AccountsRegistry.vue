@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import type { Account, RawAccount } from '@/types/Accounts'
-import { storeToRefs } from 'pinia'
+import type { Account, RawAccount } from '@/lib/account/types'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import { onMounted, ref } from 'vue'
@@ -8,6 +7,7 @@ import { stringifyTags } from '@/lib/account/tags'
 import { useAccountsStore } from '@/stores/useAccountsStore'
 import { clone } from '@/utils/clone'
 import { createId } from '@/utils/createId'
+import { deleteBy } from '@/utils/deleteBy'
 import AccountForm from './AccountForm.vue'
 
 type AccountStatus = 'DRAFT' | 'SAVED'
@@ -18,7 +18,6 @@ interface AccountFormData {
 }
 
 const store = useAccountsStore()
-const { accounts } = storeToRefs(store)
 const state = ref<AccountFormData[]>([])
 
 onMounted(() => {
@@ -26,7 +25,7 @@ onMounted(() => {
 })
 
 function initState() {
-  state.value = clone(accounts.value).map(item => ({
+  state.value = clone(store.accounts).map(item => ({
     status: 'SAVED',
     data: {
       ...item,
@@ -55,10 +54,7 @@ function markAsSaved(id: string) {
 }
 
 function handleDelete(id: string, status: AccountStatus) {
-  const index = state.value.findIndex(item => item.data.id === id)
-  if (index !== -1) {
-    state.value.splice(index, 1)
-  }
+  deleteBy(state.value, item => item.data.id === id)
   if (status === 'SAVED') {
     store.deleteAccount(id)
   }

@@ -1,65 +1,20 @@
 <script lang="ts" setup>
 import type { SelectChangeEvent } from 'primevue/select'
-import type { Account } from '@/types/Accounts'
+import type { Account, AccountType, RawAccount } from '@/types/Accounts'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Select from 'primevue/select'
 import Textarea from 'primevue/textarea'
-import z from 'zod'
 import { computed, ref } from 'vue'
-
-const baseSchema = z.object({
-  id: z.string().uuid(),
-  tags: z.string().min(1).max(50),
-  login: z.string().min(1).max(100),
-})
-
-const schema = z.discriminatedUnion('type', [
-  baseSchema.extend({
-    type: z.literal("LOCAL"),
-    password: z.string().min(1).max(100)
-  }),
-  baseSchema.extend({
-    type: z.literal("LDAP"),
-    password: z.null()
-  }),
-])
+import { validateAccount } from '@/lib/account/validation'
 
 const emit = defineEmits<{
   (e: 'delete', id: string): void
   (e: 'save', data: Account): void
 }>()
 
-const account = defineModel<Account>({ required: true })
-const errors = ref<Record<string, boolean>>({})
-
-const hasError = computed(() => (name: string) => errors.value[name] || false)
-
-function onTypeChange(e: SelectChangeEvent) {
-  if (e.value === 'LOCAL') {
-    account.value.password = ''
-  }
-  else {
-    account.value.password = null
-  }
-  validate()
-}
-
-function validate() {
-  const result = schema.safeParse(account.value)
-  if (result.success) {
-    errors.value = {}
-    emit('save', result.data)
-  } else {
-     errors.value = result.error.errors.reduce((acc, error) => {
-      acc[error.path[0]] = true
-      return acc
-     }, {} as Record<string, boolean>)
-  }
-}
-
-const options = [
+const options: { label: string, value: AccountType }[] = [
   {
     label: 'Локальная',
     value: 'LOCAL',
@@ -69,6 +24,35 @@ const options = [
     value: 'LDAP',
   },
 ]
+
+const typeDefaultValueMap = {
+  LOCAL: '',
+  LDAP: null,
+} satisfies Record<AccountType, unknown>
+
+const account = defineModel<RawAccount>({ required: true })
+const errors = ref<Record<string, boolean>>({})
+
+const hasError = computed(() => (name: string) => errors.value[name] || false)
+
+function onTypeChange(e: SelectChangeEvent) {
+  account.value.password = typeDefaultValueMap[e.value as AccountType]
+  validate()
+}
+
+function validate() {
+  const result = validateAccount(account.value)
+  if (result.success) {
+    errors.value = {}
+    emit('save', result.data)
+  }
+  else {
+    errors.value = result.error.errors.reduce((acc, error) => {
+      acc[error.path[0]] = true
+      return acc
+    }, {} as Record<string, boolean>)
+  }
+}
 </script>
 
 <template>

@@ -1,19 +1,20 @@
 <script lang="ts" setup>
-import type { Account } from '@/types/Accounts'
+import type { Account, RawAccount } from '@/types/Accounts'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import { onMounted, ref } from 'vue'
+import { stringifyTags } from '@/lib/account/tags'
 import { useAccountsStore } from '@/stores/useAccountsStore'
 import { clone } from '@/utils/clone'
 import { createId } from '@/utils/createId'
 import AccountForm from './AccountForm.vue'
 
-type AccountFormStatus = 'DRAFT' | 'EXISTS'
+type AccountStatus = 'DRAFT' | 'SAVED'
 
 interface AccountFormData {
-  status: AccountFormStatus
-  data: Account
+  status: AccountStatus
+  data: RawAccount
 }
 
 const store = useAccountsStore()
@@ -26,8 +27,11 @@ onMounted(() => {
 
 function initState() {
   state.value = clone(accounts.value).map(item => ({
-    status: 'EXISTS',
-    data: item,
+    status: 'SAVED',
+    data: {
+      ...item,
+      tags: stringifyTags(item.tags),
+    },
   }))
 }
 
@@ -43,15 +47,26 @@ function addEmpty() {
     },
   })
 }
+function markAsSaved(id: string) {
+  const data = state.value.find(item => item.data.id === id)
+  if (data) {
+    data.status = 'SAVED'
+  }
+}
 
-function handleDelete(id: string, status: AccountFormStatus) {
+function handleDelete(id: string, status: AccountStatus) {
   const index = state.value.findIndex(item => item.data.id === id)
   if (index !== -1) {
     state.value.splice(index, 1)
   }
-  if (status === 'EXISTS') {
+  if (status === 'SAVED') {
     store.deleteAccount(id)
   }
+}
+
+function handleSave(account: Account) {
+  markAsSaved(account.id)
+  store.saveAccount(account)
 }
 </script>
 
@@ -85,7 +100,7 @@ function handleDelete(id: string, status: AccountFormStatus) {
         :key="account.data.id"
         v-model="account.data"
         @delete="handleDelete(account.data.id, account.status)"
-        @save="store.saveAccount"
+        @save="handleSave"
       />
     </div>
   </div>
@@ -120,7 +135,7 @@ function handleDelete(id: string, status: AccountFormStatus) {
     gap: 0.5rem;
     grid-template-columns: 1fr .8fr 1fr 1fr 40px;
     align-items: baseline;
-    color: var(--p-neutral-500)
+    color: var(--p-neutral-500);
   }
 }
 </style>

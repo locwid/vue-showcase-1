@@ -6,7 +6,7 @@ import PrimeVue from 'primevue/config'
 import { createApp } from 'vue'
 import App from './App.vue'
 import 'primeicons/primeicons.css'
-import './assets/style.css'
+import './assets/style.less'
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)

@@ -84,13 +84,17 @@ function handleSave(account: Account) {
     >
       Для указания нескольких меток для одной пары логин/пароль используйте разделитель «;»
     </Message>
-    <div class="accounts-registry__body">
-      <div class="accounts-registry__titles">
-        <div>Метки</div>
-        <div>Тип записи</div>
-        <div>Логин</div>
-        <div>Пароль</div>
-      </div>
+    <div class="accounts-registry__titles">
+      <div>Метки</div>
+      <div>Тип записи</div>
+      <div>Логин</div>
+      <div>Пароль</div>
+    </div>
+    <TransitionGroup
+      name="list"
+      tag="div"
+      class="accounts-registry__body"
+    >
       <AccountForm
         v-for="account in state"
         :key="account.data.id"
@@ -98,6 +102,12 @@ function handleSave(account: Account) {
         @delete="handleDelete(account.data.id, account.status)"
         @save="handleSave"
       />
+    </TransitionGroup>
+    <div
+      v-if="!state.length"
+      class="accounts-registry__empty"
+    >
+      Нет данных
     </div>
   </div>
 </template>
@@ -105,15 +115,13 @@ function handleSave(account: Account) {
 <style lang="less" scoped>
 .accounts-registry {
   padding: 1rem;
-  max-width: 968px;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  width: 968px;
 
   &__header {
     display: flex;
     align-items: center;
     gap: 1rem;
+    margin-bottom: 2rem;
 
     h1 {
       margin: 0;
@@ -121,12 +129,21 @@ function handleSave(account: Account) {
   }
 
   &__body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    position: relative;
+
+    & > *:not(:last-child) {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  &__empty {
+    padding: 1rem;
+    text-align: center;
   }
 
   &__titles {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
     display: grid;
     gap: 0.5rem;
     grid-template-columns: 1fr .8fr 1fr 1fr 40px;

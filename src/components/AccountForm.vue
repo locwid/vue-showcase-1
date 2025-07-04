@@ -92,6 +92,7 @@ function validate() {
 <style scoped lang="less">
 .account-form {
   display: grid;
+  width: 100%;
   gap: 0.5rem;
   grid-template-columns: 1fr .8fr 1fr 1fr 40px;
   align-items: baseline;

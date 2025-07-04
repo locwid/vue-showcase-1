@@ -38,6 +38,7 @@ function validate() {
   <form
     class="account-form"
     autocomplete="off"
+    @submit.prevent
   >
     <Textarea
       v-model="account.tags"
